@@ -1,0 +1,11 @@
+work/
+Приклади/
+_site/
+Thumbs.db
+.DS_Store
+*.ppt
+*.pptx
+*.pps
+*.ppsx
+*.pot
+*.potx
