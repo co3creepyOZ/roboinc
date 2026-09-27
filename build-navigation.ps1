@@ -14,6 +14,8 @@ function Page($title,$prefix,$active,$body){
  foreach($g in 5..7){$nav += '<a href="'+$prefix+(Url "$g клас")+'/index.html"'+$(if($active -eq $g){' aria-current="page"'})+">$g клас</a>"}
  return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(Enc $title)+' · Лабораторія робототехніки</title><meta name="description" content="Інтерактивні уроки робототехніки для 5–7 класів: досліджуй, програмуй та перевіряй знання."><link rel="stylesheet" href="'+$prefix+'assets/site.css"></head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="'+$prefix+'index.html"><span class="mark" aria-hidden="true">R/00</span>Лабораторія робототехніки</a><span class="small">Досліджуй · Створюй · Перевіряй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Класи">'+$nav+'</nav><p class="small">Обери клас і тему.<br>Навчайся у своєму темпі.</p></aside><main id="main">'+$body+'<footer>Лабораторія робототехніки · 5–7 класи</footer></main></div></body></html>'
 }
+# Site-only descriptions survive syncing the original lesson files.
+$summaryOverrides = Get-Content -LiteralPath (Join-Path $root 'lesson-summaries.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $gradeCards = ''
 $total = 0
 foreach($g in 5..7){
@@ -25,6 +27,9 @@ foreach($g in 5..7){
   $html = [IO.File]::ReadAllText($file.FullName)
   $title = $file.BaseName -replace '^Урок \d+ — ',''
   $description = [regex]::Match($html,'<meta name="description" content="([^"]*)"').Groups[1].Value
+  $summaryKey = $file.FullName.Substring($root.Length+1).Replace([char]92,[char]47)
+  $summaryOverride = $summaryOverrides.PSObject.Properties[$summaryKey]
+  if ($summaryOverride) { $description = Enc $summaryOverride.Value }
   $relative = $file.FullName.Substring((Join-Path $root "$g клас").Length+1).Replace('\','/')
   $cards += '<article class="card"><span class="tag">Урок '+($i+1).ToString('00')+'</span><h2>'+(Enc $title)+'</h2><p>'+ $description +'</p><a class="button" href="'+(Url $relative)+'">Відкрити урок →</a>'+'</article>'
   $lessonNav = '<div id="site-navigation" style="max-width:1200px;margin:16px auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:16px;font:14px/1.6 Segoe UI,Arial,sans-serif" role="navigation" aria-label="Навігація між уроками"><a href="../../../index.html">Усі класи</a><a href="../../index.html">'+$g+' клас · Усі уроки</a>'
