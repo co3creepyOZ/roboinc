@@ -12,6 +12,7 @@ Save 'assets/site.css' $css
 function Page($title,$prefix,$active,$body){
  $nav = '<a href="'+$prefix+'index.html"'+$(if($active -eq 0){' aria-current="page"'})+'>Усі класи</a>'
  foreach($g in 5..7){$nav += '<a href="'+$prefix+(Url "$g клас")+'/index.html"'+$(if($active -eq $g){' aria-current="page"'})+">$g клас</a>"}
+ $nav += '<a href="'+$prefix+'podcasts/index.html">Подкасти</a>'
  return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(Enc $title)+' · Лабораторія робототехніки</title><meta name="description" content="Інтерактивні уроки робототехніки для 5–7 класів: досліджуй, програмуй та перевіряй знання."><link rel="stylesheet" href="'+$prefix+'assets/site.css"></head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="'+$prefix+'index.html"><span class="mark" aria-hidden="true">R/00</span>Лабораторія робототехніки</a><span class="small">Досліджуй · Створюй · Перевіряй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Класи">'+$nav+'</nav><p class="small">Обери клас і тему.<br>Навчайся у своєму темпі.</p></aside><main id="main">'+$body+'<footer>Лабораторія робототехніки · 5–7 класи</footer></main></div></body></html>'
 }
 # Site-only descriptions survive syncing the original lesson files.
@@ -37,6 +38,8 @@ foreach($g in 5..7){
   if($i -lt $files.Count-1){$lessonNav += '<a href="../'+(Url ($files[$i+1].Directory.Name+'/'+$files[$i+1].Name))+'">Наступний урок →</a>'}
   $lessonNav += '</div>'
   $html = [regex]::Replace($html,'<div id="site-navigation".*?</div>','',[Text.RegularExpressions.RegexOptions]::Singleline)
+  $html = [regex]::Replace($html,'<link id="lesson-navigation-style"[^>]*>','')
+  $html = $html.Replace('</head>','<link id="lesson-navigation-style" rel="stylesheet" href="../../../assets/lesson-navigation.css"></head>')
   $html = $html.Replace('</header>','</header>'+$lessonNav)
   [IO.File]::WriteAllText($file.FullName,$html,$utf8)
  }
@@ -48,3 +51,6 @@ $body = '<section class="hero"><div class="eyebrow">Інтерактивні у�
 Save 'index.html' (Page 'Усі класи' '' 0 $body)
 Save '.nojekyll' ''
 Write-Output "Generated homepage, 3 grade indexes and navigation for $total lessons."
+
+python (Join-Path $root "build-podcasts.py")
+if ($LASTEXITCODE -ne 0) { throw "Podcast generation failed" }

@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html .nojekyll _site/
-          cp -R assets "5 клас" "6 клас" "7 клас" _site/
+          cp -R assets podcasts "5 клас" "6 клас" "7 клас" _site/
       - name: Exclude presentation files
         run: find _site -type f \( -iname '*.ppt' -o -iname '*.pptx' -o -iname '*.pps' -o -iname '*.ppsx' -o -iname '*.pot' -o -iname '*.potx' \) -delete
       - uses: actions/upload-pages-artifact@v3

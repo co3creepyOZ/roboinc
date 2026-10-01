@@ -1,0 +1,9 @@
+#site-navigation{gap:8px!important}
+#site-navigation a,.lesson-podcast .podcast-shortcuts a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:7px 13px;border:1px solid #d5dfe8;border-radius:10px;background:#fff;color:#304a60;font:600 14px/1.4 'Segoe UI',Arial,sans-serif;text-decoration:none;box-shadow:0 1px 2px #15294006;transition:background .15s,border-color .15s,color .15s}
+#site-navigation a:nth-child(2){background:#e8f3ef;border-color:#c9dfd7;color:#315f53}
+#site-navigation a:hover,.lesson-podcast .podcast-shortcuts a:hover{background:#e3f1eb;border-color:#9dbeb0;color:#174f40}
+#site-navigation a:focus-visible,.lesson-podcast .podcast-shortcuts a:focus-visible{outline:3px solid #d88600;outline-offset:3px}
+.lesson-podcast .podcast-shortcuts{gap:6px}
+.lesson-podcast .podcast-shortcuts a{min-height:32px;padding:5px 10px;font-size:13px;background:#ffffffb3;border-color:#c9dfd7;box-shadow:none}
+@media(max-width:650px){#site-navigation{padding:0 16px!important}#site-navigation a{font-size:13px;padding:7px 10px}.lesson-podcast .podcast-shortcuts a{padding:5px 8px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){#site-navigation a,.lesson-podcast .podcast-shortcuts a{transition:none}}
