@@ -75,22 +75,27 @@ def sync_ready_podcasts():
 def build():
     sync_ready_podcasts()
     records=json.loads((SITE/'podcasts/manifest.json').read_text(encoding='utf-8'))
+    favicon = (Path(__file__).resolve().parents[2]/'templates/lessons/favicon.html').read_text(encoding='utf-8').strip()
     def shell(title, body, prefix='../'):
         nav=''.join(f'<a href="{prefix}{url(str(g)+" клас")}/index.html">{g} клас</a>' for g in (5,6,7))
-        return f'<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)} · Лабораторія робототехніки</title><link rel="stylesheet" href="{prefix}assets/site.css"><link rel="stylesheet" href="{prefix}assets/podcasts.css"><script src="{prefix}assets/podcasts.js" defer></script></head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="{prefix}index.html"><span class="mark">R/00</span>Лабораторія робототехніки</a><span class="small">Слухай · Досліджуй · Створюй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Розділи"><a href="{prefix}index.html">Усі класи</a>{nav}<a href="{prefix}podcasts/index.html" aria-current="page">Подкасти</a></nav></aside><main id="main">{body}<footer>Лабораторія робототехніки · Навчальні подкасти</footer></main></div></body></html>'
+        return f'<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)} · Лабораторія робототехніки</title><link rel="stylesheet" href="{prefix}assets/site.css"><link rel="stylesheet" href="{prefix}assets/podcasts.css"><script src="{prefix}assets/podcasts.js" defer></script>{favicon}</head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="{prefix}index.html"><span class="mark">R/00</span>Лабораторія робототехніки</a><span class="small">Слухай · Досліджуй · Створюй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Розділи"><a href="{prefix}index.html">Усі класи</a>{nav}<a href="{prefix}podcasts/index.html" aria-current="page">Подкасти</a></nav></aside><main id="main">{body}<footer>Лабораторія робототехніки · Навчальні подкасти</footer></main></div></body></html>'
     cards=[]
     for r in records:
         audio=f'audio/{r["id"]}.m4a'
         link=url('../'+r['lesson'])
         transcript=SITE/'podcasts'/r['id']/'transcript.md'
         rows=[]
+        speakers={}
         if transcript.exists():
             for clock, speaker, text in re.findall(r'\*\*\[([\d:]+)\] ([^:]+):\*\*\s*(.*?)(?=\n\s*\n|\Z)',transcript.read_text(encoding='utf-8'),re.S):
                 seconds=0
                 for n in clock.split(':'): seconds=seconds*60+int(n)
-                rows.append(f'<article class="utterance" data-start="{seconds}"><div><strong>{esc(speaker)}</strong> <button class="time" data-time="{seconds}" aria-label="Слухати з {clock}">{clock}</button></div><p>{esc(text)}</p></article>')
+                speaker=speaker.strip()
+                speaker_index=speakers.setdefault(speaker,len(speakers))
+                rows.append(f'<article class="utterance speaker-{speaker_index % 6}" data-speaker="{esc(speaker)}" data-start="{seconds}"><div><strong>{esc(speaker)}</strong> <button class="time" data-time="{seconds}" aria-label="Слухати з {clock}">{clock}</button></div><p>{esc(text)}</p></article>')
             if not rows: raise ValueError('No transcript rows: '+r['id'])
-        transcript_body=('<h2>Транскрипція</h2><p class="small">Автоматична транскрипція Whisper; розподіл голосів виконано алгоритмічно. Текст може містити неточності.</p><label for="transcript-search">Пошук у тексті</label><input id="transcript-search" type="search" placeholder="Знайти слово або фразу"><p id="transcript-status" class="small" role="status"></p><div id="transcript">'+''.join(rows)+'</div>') if rows else '<h2>Транскрипція</h2><p>Транскрипцію ще не додано.</p>'
+        legend=''.join(f'<span class="speaker-key speaker-{index % 6}">{esc(name)}</span>' for name,index in speakers.items())
+        transcript_body=('<p class="ai-transcript-note">Транскрипцію створено за допомогою ШІ. Текст і визначення мовців можуть містити помилки.</p><details class="transcript-panel"><summary>Транскрипція <span class="small">· '+str(len(rows))+' реплік</span></summary><div class="transcript-content"><div class="speaker-legend" aria-label="Мовці">'+legend+'</div><label for="transcript-search">Пошук у тексті</label><input id="transcript-search" type="search" placeholder="Знайти слово або фразу"><p id="transcript-status" class="small" role="status"></p><div id="transcript">'+''.join(rows)+'</div></div></details>') if rows else '<p>Транскрипцію ще не додано.</p>'
         body=f'<p class="breadcrumb"><a href="../index.html">Усі подкасти</a> / {r["grade"]} клас</p><section class="hero"><div class="eyebrow">Подкаст · Урок {r["number"]:02}</div><h1>{esc(r["title"])}</h1><p class="lead">{esc(r["summary"])}</p><audio id="podcast-audio" controls preload="metadata" src="../{audio}" aria-label="Подкаст: {esc(r["title"])}">Ваш браузер не підтримує аудіо.</audio><p class="podcast-links"><a href="{url("../../"+r["lesson"])}">Відкрити урок →</a><a href="../{audio}" download>Завантажити аудіо</a></p><p class="audio-status" role="status"></p></section>{transcript_body}'
         write(SITE/'podcasts'/r['id']/'index.html',shell(r['title'],body,'../../'))
         cards.append(f'<article class="card podcast-card" data-grade="{r["grade"]}" data-search="{esc(r["title"].lower())}"><span class="tag">{r["grade"]} клас · Урок {r["number"]:02}</span><h2>{esc(r["title"])}</h2><p>{esc(r["summary"])}</p><audio controls preload="none" src="{audio}" aria-label="Подкаст: {esc(r["title"])}"></audio><p class="audio-status" role="status"></p><div class="podcast-links"><a class="button" href="{r["id"]}/index.html">{"Транскрипція" if rows else "Сторінка подкасту"} →</a><a href="{link}">До уроку</a></div></article>')

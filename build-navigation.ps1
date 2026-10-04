@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+$favicon = Get-Content -LiteralPath (Join-Path $root '../../templates/lessons/favicon.html') -Raw -Encoding UTF8
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 function Save($file, $content) { [IO.File]::WriteAllText((Join-Path $root $file), $content, $utf8) }
 function Enc($text) { [System.Net.WebUtility]::HtmlEncode($text) }
@@ -13,7 +14,7 @@ function Page($title,$prefix,$active,$body){
  $nav = '<a href="'+$prefix+'index.html"'+$(if($active -eq 0){' aria-current="page"'})+'>Усі класи</a>'
  foreach($g in 5..7){$nav += '<a href="'+$prefix+(Url "$g клас")+'/index.html"'+$(if($active -eq $g){' aria-current="page"'})+">$g клас</a>"}
  $nav += '<a href="'+$prefix+'podcasts/index.html">Подкасти</a>'
- return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(Enc $title)+' · Лабораторія робототехніки</title><meta name="description" content="Інтерактивні уроки робототехніки для 5–7 класів: досліджуй, програмуй та перевіряй знання."><link rel="stylesheet" href="'+$prefix+'assets/site.css"></head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="'+$prefix+'index.html"><span class="mark" aria-hidden="true">R/00</span>Лабораторія робототехніки</a><span class="small">Досліджуй · Створюй · Перевіряй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Класи">'+$nav+'</nav><p class="small">Обери клас і тему.<br>Навчайся у своєму темпі.</p></aside><main id="main">'+$body+'<footer>Лабораторія робототехніки · 5–7 класи</footer></main></div></body></html>'
+ return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(Enc $title)+' · Лабораторія робототехніки</title><meta name="description" content="Інтерактивні уроки робототехніки для 5–7 класів: досліджуй, програмуй та перевіряй знання."><link rel="stylesheet" href="'+$prefix+'assets/site.css">'+$favicon+'</head><body><a class="skip" href="#main">До вмісту</a><header><a class="brand" href="'+$prefix+'index.html"><span class="mark" aria-hidden="true">R/00</span>Лабораторія робототехніки</a><span class="small">Досліджуй · Створюй · Перевіряй</span></header><div class="layout"><aside><div class="eyebrow">Твій маршрут</div><nav aria-label="Класи">'+$nav+'</nav><p class="small">Обери клас і тему.<br>Навчайся у своєму темпі.</p></aside><main id="main">'+$body+'<footer>Лабораторія робототехніки · 5–7 класи</footer></main></div></body></html>'
 }
 # Site-only descriptions survive syncing the original lesson files.
 $summaryOverrides = Get-Content -LiteralPath (Join-Path $root 'lesson-summaries.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -30,7 +31,20 @@ foreach($g in 5..7){
   $description = [regex]::Match($html,'<meta name="description" content="([^"]*)"').Groups[1].Value
   $summaryKey = $file.FullName.Substring($root.Length+1).Replace([char]92,[char]47)
   $summaryOverride = $summaryOverrides.PSObject.Properties[$summaryKey]
-  if ($summaryOverride) { $description = Enc $summaryOverride.Value }
+  if ($summaryOverride -and ![string]::IsNullOrWhiteSpace($summaryOverride.Value)) { $description = Enc $summaryOverride.Value }
+  # Every lesson card must have a summary. Prefer curated text, then metadata,
+  # then the lesson introduction; use a title-based fallback only as a last resort.
+  if ([string]::IsNullOrWhiteSpace($description)) {
+    $lead = [regex]::Match($html, '<p[^>]*class="[^"]*\blead\b[^"]*"[^>]*>(.*?)</p>', [Text.RegularExpressions.RegexOptions]::Singleline).Groups[1].Value
+    $plain = [Net.WebUtility]::HtmlDecode([regex]::Replace($lead, '<[^>]+>', ' '))
+    $plain = [regex]::Replace($plain, '\s+', ' ').Trim()
+    if ($plain.Length -gt 200) { $plain = $plain.Substring(0,197).TrimEnd() + '…' }
+    if ([string]::IsNullOrWhiteSpace($plain)) {
+      $plain = 'Досліди тему «' + $title + '» та виконай завдання уроку.'
+      Write-Warning "Review the generated summary for $summaryKey in lesson-summaries.json."
+    }
+    $description = Enc $plain
+  }
   $relative = $file.FullName.Substring((Join-Path $root "$g клас").Length+1).Replace('\','/')
   $cards += '<article class="card"><span class="tag">Урок '+($i+1).ToString('00')+'</span><h2>'+(Enc $title)+'</h2><p>'+ $description +'</p><a class="button" href="'+(Url $relative)+'">Відкрити урок →</a>'+'</article>'
   $lessonNav = '<div id="site-navigation" style="max-width:1200px;margin:16px auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:16px;font:14px/1.6 Segoe UI,Arial,sans-serif" role="navigation" aria-label="Навігація між уроками"><a href="../../../index.html">Усі класи</a><a href="../../index.html">'+$g+' клас · Усі уроки</a>'
@@ -40,6 +54,10 @@ foreach($g in 5..7){
   $html = [regex]::Replace($html,'<div id="site-navigation".*?</div>','',[Text.RegularExpressions.RegexOptions]::Singleline)
   $html = [regex]::Replace($html,'<link id="lesson-navigation-style"[^>]*>','')
   $html = $html.Replace('</head>','<link id="lesson-navigation-style" rel="stylesheet" href="../../../assets/lesson-navigation.css"></head>')
+  $html = [regex]::Replace($html,'<!-- robot-lab-controls:start -->.*?<!-- robot-lab-controls:end -->','',[Text.RegularExpressions.RegexOptions]::Singleline)
+  if ($html.Contains('data-decision-game')) {
+    $html = $html.Replace('</head>','<!-- robot-lab-controls:start --><link rel="stylesheet" href="../../../assets/robot-lab-controls.css"><script src="../../../assets/robot-lab-controls.js" defer></script><!-- robot-lab-controls:end --></head>')
+  }
   $html = $html.Replace('</header>','</header>'+$lessonNav)
   [IO.File]::WriteAllText($file.FullName,$html,$utf8)
  }

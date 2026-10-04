@@ -1,0 +1,13 @@
+.robot-game .rv-stage[data-editable]{margin-top:16px}
+.robot-game .rv-stage[data-editable] .rv-columns{grid-template-columns:minmax(210px,.9fr) minmax(250px,1.1fr);align-items:start;gap:20px}
+.robot-game .rv-stage[data-editable] .rv-node{padding:12px;margin-bottom:18px}
+.robot-game .rv-edit-controls label{font-size:14px;margin:6px 0 4px}
+.robot-game .rv-edit-controls select{font-size:15px;padding:8px;min-height:40px}
+.robot-game .rv-edit-controls .rg-note{font-size:13px;margin:8px 0 0}
+.robot-game .rv-stage[data-editable] .rv-node>.rv-buddy{position:absolute;right:10px;top:9px;pointer-events:none}
+.robot-game .rv-stage[data-editable] .rv-node small{margin-top:8px}
+.robot-game .rv-stage[data-editable] .rv-else{background:#edf6f3;border-color:#b8d6c7}
+.robot-game .rv-stage[data-editable] .rv-else:after{display:none}
+.robot-game .rv-test-results{margin-top:12px;border:1px solid #b8cede;border-radius:12px;background:#ffffffb3;padding:12px}
+.robot-game .rv-stage[data-editable] .rv-board{width:100%;box-sizing:border-box}
+@media(max-width:1000px){.robot-game .rv-stage[data-editable] .rv-columns{grid-template-columns:1fr}.robot-game .rv-stage[data-editable] .rv-board{max-width:270px}}

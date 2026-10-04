@@ -4,3 +4,27 @@ audio{width:100%;max-width:100%;margin:8px 0 14px}main{min-width:0}.podcast-link
 .podcast-card .podcast-links>a:not(.button):hover{background:#e0efe8;border-color:#9dbeb0;color:#174f40}
 .podcast-card .podcast-links>a:not(.button):focus-visible{outline:3px solid #d88600;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.podcast-card .podcast-links>a:not(.button){transition:none}}
+
+.ai-transcript-note{font-size:14px;color:var(--muted);margin:0 0 16px}
+.transcript-panel{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
+.transcript-panel>summary{cursor:pointer;padding:18px 20px;font-weight:700;color:var(--ink)}
+.transcript-panel>summary:hover{background:#edf6f3}
+.transcript-panel>summary:focus-visible{outline:3px solid #d88600;outline-offset:-4px}
+.transcript-content{padding:0 20px 20px}
+.speaker-legend{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
+.speaker-0{--speaker-bg:#edf6f3;--speaker-line:#9dbfb1;--speaker-ink:#285847}
+.speaker-1{--speaker-bg:#edf2fc;--speaker-line:#a8badb;--speaker-ink:#334f80}
+.speaker-2{--speaker-bg:#f5eef8;--speaker-line:#c7afd7;--speaker-ink:#69427a}
+.speaker-3{--speaker-bg:#fbf2e7;--speaker-line:#d9bd97;--speaker-ink:#775027}
+.speaker-4{--speaker-bg:#faedf0;--speaker-line:#d7a9b5;--speaker-ink:#7d3b4c}
+.speaker-5{--speaker-bg:#eaf5f7;--speaker-line:#96bec7;--speaker-ink:#285e68}
+.speaker-key{padding:4px 11px;border-radius:8px;font-size:14px;font-weight:600;background:var(--speaker-bg);color:var(--speaker-ink);border:1px solid var(--speaker-line)}
+.utterance[class*="speaker-"]{background:var(--speaker-bg);border-color:var(--speaker-line);border-left-width:4px}
+.utterance[class*="speaker-"] strong{color:var(--speaker-ink)}
+.utterance.current{outline:2px solid #152940;outline-offset:2px;box-shadow:none}
+@media(max-width:600px){.transcript-content{padding:0 12px 12px}.transcript-panel>summary{padding:16px}}
+
+.hero .podcast-links>a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border:1px solid #c9dfd7;border-radius:10px;background:#ffffffb3;color:#315f53;font-size:14px;font-weight:600;line-height:1.4;text-decoration:none;transition:background .15s,border-color .15s}
+.hero .podcast-links>a:hover{background:#e0efe8;border-color:#9dbeb0;color:#174f40}
+.hero .podcast-links>a:focus-visible{outline:3px solid #d88600;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.hero .podcast-links>a{transition:none}}
