@@ -1,7 +1,9 @@
 from pathlib import Path
-import re, json, html, shutil, hashlib
+import re, json, html, shutil, hashlib, sys
 from urllib.parse import quote
 SITE = Path(__file__).resolve().parent
+sys.path.insert(0,str(SITE.parent.parent/'scripts/lessons'))
+from presentation import place_control
 def esc(s): return html.escape(str(s), quote=True)
 def url(s): return quote(str(s).replace(chr(92), '/'), safe='/')
 def write(p, s):
@@ -41,7 +43,7 @@ def sync_ready_podcasts():
         if not re.search(re.escape('**[') + r'[0-9:]+' + re.escape('] ') + r'[^:]+' + re.escape(':**') + r' +.', text):
             pending.append(transcript.name + ': немає реплік транскрипції')
             continue
-        lessons = list((SITE/f'{grade} клас/Робототехніка').glob(f'Урок {number:02} — */*.html'))
+        lessons = list((SITE/f'{grade} клас/Робототехніка').glob(f'Урок {number:02} — */Урок {number:02} — *.html'))
         if len(lessons) != 1:
             pending.append(transcript.name + ': урок ще не додано до сайту')
             continue
@@ -105,7 +107,7 @@ def build():
         block=f'<!-- podcast:start --><style>.lesson-podcast{{max-width:1152px;margin:12px auto;padding:8px 14px;border:1px solid #d5dfe8;border-radius:12px;background:#edf6f3;display:flex;align-items:center;gap:12px;box-sizing:border-box}}.lesson-podcast .podcast-label{{font-size:14px;font-weight:650;white-space:nowrap}}.lesson-podcast audio{{flex:1;min-width:180px;width:100%;height:32px;margin:0}}.lesson-podcast .podcast-shortcuts{{display:flex;gap:12px;white-space:nowrap;font-size:14px}}@media(max-width:650px){{.lesson-podcast{{margin:10px 16px;flex-wrap:wrap;gap:6px 12px}}.lesson-podcast audio{{order:3;flex-basis:100%}}.lesson-podcast .podcast-shortcuts{{margin-left:auto;font-size:13px}}}}@media print{{.lesson-podcast{{display:none}}}}</style><section class="lesson-podcast" aria-label="Подкаст до уроку"><span class="podcast-label">Подкаст</span><audio controls preload="none" src="../../../podcasts/{audio}" aria-label="Подкаст: {esc(r["title"])}"></audio><div class="podcast-shortcuts"><a href="../../../podcasts/{r["id"]}/index.html">{"Транскрипція" if rows else "Про запис"}</a><a href="../../../podcasts/index.html">Усі подкасти</a></div></section><!-- podcast:end -->'
         nav=re.search(r'<div id="site-navigation".*?</div>',content,re.S)
         pos=nav.end() if nav else content.index('</header>')+len('</header>')
-        write(lesson,content[:pos]+block+content[pos:])
+        write(lesson,place_control(content[:pos]+block+content[pos:]))
     body='<section class="hero"><div class="eyebrow">Аудіолабораторія · 5–7 класи</div><h1>Уроки, які можна слухати</h1><p class="lead">Обери тему, слухай розмову та повертайся до практики. Читай транскрипцію й переходь до потрібного моменту запису.</p></section><div class="podcast-toolbar"><label>Пошук подкасту<input id="podcast-search" type="search" placeholder="Назва або тема"></label><label>Клас<select id="podcast-grade"><option value="">Усі класи</option><option value="5">5 клас</option><option value="6">6 клас</option><option value="7">7 клас</option></select></label></div><p id="podcast-count" class="small" role="status"></p><div class="lessons">'+''.join(cards)+'</div><p id="podcast-empty" hidden>Подкастів за цим запитом немає. Спробуй інше слово або клас.</p>'
     write(SITE/'podcasts/index.html',shell('Подкасти',body))
     print(f'Built {len(records)} podcasts and lesson players.')
