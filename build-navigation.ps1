@@ -21,7 +21,8 @@ $summaryOverrides = Get-Content -LiteralPath (Join-Path $root 'lesson-summaries.
 $gradeCards = ''
 $total = 0
 foreach($g in 5..7){
- $files = @(Get-ChildItem -LiteralPath (Join-Path $root "$g клас/Робототехніка") -Recurse -Filter '*.html' | Sort-Object FullName)
+ # Presentations are companion documents, not additional lessons.
+ $files = @(Get-ChildItem -LiteralPath (Join-Path $root "$g клас/Робототехніка") -Recurse -Filter '*.html' | Where-Object { $_.Name -match '^Урок \d+ — .+\.html$' } | Sort-Object FullName)
  $total += $files.Count
  $cards = ''
  for($i=0;$i -lt $files.Count;$i++){
